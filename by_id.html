@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>News Recommendation System</title>
+  </head>
+  <body>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+
+    <div id="app">
+      <div class="container-fluid mx-3">
+        <div class="row">
+          <div class="jumbotron col-12">
+            <h1>News Recommendation System</h1>
+            <p class="lead">
+              News recommendation system based on cosine similarity
+            </p>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-xs-12">
+            <div class="form-inline">
+              <label for="" class="form-label">Choose ID (Press Enter): </label>
+
+<input type="number" class="form-control" name="id" v-model="selected" @keyup.enter="onChange"/>
+              <!-- <span>Selected: {{ selected }}</span> -->
+              <button class="btn btn-success mx-3" @click="getRecommendation">
+                Get Recommendation
+              </button>
+            </div>
+          </div>
+          
+        </div>
+        <div class="row my-2">
+                                            <h6>Please wait some time for recommendation to load.</h6>
+
+        </div>
+
+        <div class="row mt-4">
+          <div class="col-xs-12 col-md-6">
+            <table class="table">
+              <tr>
+                <th>Browsing History</th>
+              </tr>
+              <tr>
+                <td>
+                  <li v-for="(news,id) in history" :key="id">
+                    <a :href="news.url" target="_blank">{{news.title}}</a>
+                  </li>
+                </td>
+              </tr>
+            </table>
+            <ul></ul>
+          </div>
+          <div class="col-xs-12 col-md-6">
+            <table class="table">
+              <tr>
+                <th>Recommendations</th>
+              </tr>
+              <tr>
+                <td>
+                  <li v-for="(news,id) in recommendations" :key="id">
+                    <a :href="news.url" target="_blank">{{news.title}}</a>
+                  </li>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      var app = new Vue({
+        el: "#app",
+        data: {
+          users: [],
+          selected: "319",
+          history: [],
+          recommendations: [],
+        },
+        async mounted() {
+          fetch("/users")
+            .then((response) => response.json())
+            .then((data) => {
+              this.users = data;
+            })
+            .catch((err) => console.log(err));
+        },
+        methods: {
+          async getRecommendation() {
+             this.history=[]
+            // alert(this.selected)
+            fetch("/history?id=" + this.selected)
+              .then((response) => response.json())
+              .then((data) => {
+                this.history = data;
+                console.log(this.history);
+              })
+              .catch((err) => console.log(err));
+
+            this.recommendations=[];
+            fetch("/recommendation?id=" + this.selected)
+              .then((response) => response.json())
+              .then((data) => {
+                this.recommendations = data;
+              })
+              .catch((err) => console.log(err));
+          },
+          async getHistory() {
+                  this.history=[]
+            // alert(this.selected)
+            fetch("/history?id=" + this.selected)
+              .then((response) => response.json())
+              .then((data) => {
+                this.history = data;
+                console.log(this.history);
+              })
+              .catch((err) => console.log(err));
+              
+           
+          },
+          async onChange() {
+            this.history=[];
+            this.recommendations=[]
+            await this.getHistory();
+          },
+        },
+      });
+    </script>
+    <style>
+      .left {
+        background-color: #ddd;
+        width: 300px;
+      }
+      .right {
+        background-color: #ccc;
+        width: 300px;
+      }
+      #news {
+        font-family: Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+      }
+
+      #news td,
+      #news th {
+        border: 1px solid #ddd;
+        padding: 8px;
+      }
+
+      #news tr:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+
+      #news tr:hover {
+        background-color: #ddd;
+      }
+
+      #news th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: #04aa6d;
+        color: white;
+      }
+    </style>
+  </body>
+</html>
