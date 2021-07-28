@@ -17,10 +17,15 @@
 
     <div id="app">
       <div class="container-fluid mx-3">
-        <div class="jumbotron">
-          <h1>News Recommendation System</h1>
-          <p class="lead">News recommendation system based on cosine similarity</p>
+        <div class="row">
+          <div class="jumbotron col-12">
+            <h1>News Recommendation System</h1>
+            <p class="lead">
+              News recommendation system based on cosine similarity
+            </p>
+          </div>
         </div>
+
         <div class="row">
           <div class="col-xs-12">
             <div class="form-inline">
@@ -35,14 +40,12 @@
                 </option>
               </select>
               <!-- <span>Selected: {{ selected }}</span> -->
-            <button class="btn btn-success mx-3" @click="getRecommendation">
-              Get Recommendation
-            </button>
+              <button class="btn btn-success mx-3" @click="getRecommendation">
+                Get Recommendation
+              </button>
             </div>
           </div>
-          <div class="col-xs-12">
-            
-          </div>
+          <div class="col-xs-12"></div>
         </div>
         <div class="row mt-4">
           <div class="col-xs-12 col-md-6">
@@ -61,7 +64,7 @@
             <ul></ul>
           </div>
           <div class="col-xs-12 col-md-6">
-               <table class="table">
+            <table class="table">
               <tr>
                 <th>Recommendations</th>
               </tr>
