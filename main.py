@@ -9,21 +9,29 @@ from sklearn.metrics.pairwise import cosine_similarity
 import regex
 
 class DataAnalyzer:
+    #custom analyzer
     def custom_analyzer(self,text):
-        words = regex.findall(r'\w{2,}', text) # extract words of at least 2 letters
+        words = regex.findall(r'\w{2,}', text) # at least 2 letters
         for w in words:
             yield w
 
 
 class NewsPredictor:
+    #prepare predictor based on combined features and historical records
     def prepare_predictor(self,df):
         self.df=df
+        #count based vectors
         self.count_vect = CountVectorizer(analyzer = DataAnalyzer().custom_analyzer)
+        #sparce matrix based on combined features
         self.sparse_matrix = self.count_vect.fit_transform(df["combined_features"])
+        #document term matrix
         self.doc_term_matrix = self.sparse_matrix.todense()
+        #dataframe for visualization
         self.dfs = pd.DataFrame(self.doc_term_matrix,columns=self.count_vect.get_feature_names(), )
+        #calculate cosine similarity 
         self.cosine_sim=cosine_similarity(self.sparse_matrix)#dfs, dfs)
 
+    #predict news list based on individual ID
     def predictById(self,id):
         recommended=[]
         index = (self.df[self.df['id']==str(id)].index)[0]
@@ -38,9 +46,8 @@ class NewsPredictor:
         return recommended
         pass
 
-
+    #bulk prediction
     def predict(self,history):  
-       
         final_recommendation=set()
         for news in history:
             print(news['id'])
@@ -54,7 +61,7 @@ class NewsPredictor:
             return final_recommendation
 
 
-
+    #prepare result for bulk pred.
     def prepare_result(self,post_id):
         recommended=[]
         index = (self.df[self.df['id']==str(post_id)].index)[0]
@@ -74,6 +81,7 @@ class NewsPredictor:
 
 
 class NewsDB:
+    #initialize news db
     def __init__(self) -> None:
         self.features = ['title', 'content']
         with open('db_full.json', 'r', encoding='utf-8') as datafile:
@@ -85,13 +93,16 @@ class NewsDB:
     def df(self):
         return self.df
 
+    #get news from given ID
     def getNewsFromID(self,id):
         return self.df[self.df['id'] == id].values[0]
 
+    #reset dataframe
     def resetFeatures(self):
         for feature in self.features:
             self.df[feature] = self.df[feature].fillna('')
 
+    #return combined features (apply content filtering here)
     def combined_features(self,row):
         return row['title']+" "+row['content']
 
@@ -118,13 +129,18 @@ class NewsDB:
 
 
 class UserDB:
+    #initialize users db
     def __init__(self) -> None:
         self.df_user_info=pd.read_csv("users_info.csv")
         self.df=pd.read_csv("user_visit.csv")
         pass
+
+    #list users
     def getUsers(self):
         list = pd.DataFrame(self.df_user_info,  columns=["id","fullname","email"], )
         return list
+    
+    #get user's browsing history, perf. improvement possible
     def getUsersBrowsingHistory(self,user_id):
         list = pd.DataFrame(self.df)
         item=list[list['user_id']==user_id]
@@ -141,10 +157,8 @@ class UserDB:
 
 
 
+#http server to serve the resource
 class Server(SimpleHTTPRequestHandler):
-
-    
-
     def _set_json_headers(self):
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
