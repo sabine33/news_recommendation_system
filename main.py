@@ -169,7 +169,7 @@ class Server(SimpleHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
         self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
+        # self.end_headers()
         
     def do_HEAD(self):
         self._set_headers()
@@ -239,7 +239,8 @@ class Server(SimpleHTTPRequestHandler):
 def run(server_class=HTTPServer, handler_class=Server, port=4444):
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
-    print('Starting httpd on port %d...', port)
+    print('Starting http server on port %d...', port)
+    print("Please open browser on specific port")
     httpd.serve_forever()
     
 
