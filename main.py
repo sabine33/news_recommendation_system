@@ -7,6 +7,7 @@ import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import regex
+from stopwords import stopwords
 
 class DataAnalyzer:
     #custom analyzer
@@ -14,6 +15,7 @@ class DataAnalyzer:
         words = regex.findall(r'\w{2,}', text) # at least 2 letters
         for w in words:
             yield w
+            
 
 
 class NewsPredictor:
@@ -40,7 +42,7 @@ class NewsPredictor:
         for news in sorted_similar[1:3]:
             index=int(news[0])
             print(index)
-            similar=NewsDB().get_news_from_index(index)
+            similar=newsdb.get_news_from_index(index)
             recommended.append(similar)
         
         return recommended
@@ -88,6 +90,10 @@ class NewsDB:
             data = json.load(datafile)
         self.df = pd.json_normalize(data['news'])
         self.df["combined_features"] = self.df.apply(self.combined_features, axis =1)
+        #remove stop words
+        print("REMOVING STOP WORDS")
+        self.df['content']=self.df['content'].apply(lambda words: ' '.join(word.lower() for word in words.split() if word not in stopwords))
+        print("REMOVED ALL STOP WORDS")
         pass
 
     def df(self):
@@ -101,6 +107,11 @@ class NewsDB:
     def resetFeatures(self):
         for feature in self.features:
             self.df[feature] = self.df[feature].fillna('')
+
+    def remove_stop_words(self,source):
+        sanitized=" ".join([x for x in source.split() if x not in stopwords])
+        return sanitized
+
 
     #return combined features (apply content filtering here)
     def combined_features(self,row):
@@ -141,20 +152,22 @@ class UserDB:
         return list
     
     #get user's browsing history, perf. improvement possible
-    def getUsersBrowsingHistory(self,user_id):
+    def getUsersBrowsingHistory(self,user_id,newsdb):
         list = pd.DataFrame(self.df)
         item=list[list['user_id']==user_id]
         browsed=item['post_id'].values
         newslist=[]
         for id in browsed:
-            newslist.append(NewsDB().get_news_from_id(id))
+            newslist.append(newsdb.get_news_from_id(id))
         return newslist
     # print(item['post_id'].values)
 
 
 
 
-
+newsdb=NewsDB()
+predictor=NewsPredictor()
+userdb=UserDB()
 
 
 #http server to serve the resource
@@ -179,9 +192,7 @@ class Server(SimpleHTTPRequestHandler):
         queryStrings=dict(urllib.parse.parse_qsl(self.path))
         print(queryStrings)
         id=int(queryStrings['/history?id'])
-        userdb=UserDB()
-        history=userdb.getUsersBrowsingHistory(id)
-        print(history)
+        history=userdb.getUsersBrowsingHistory(id,newsdb)
         self.wfile.write(json.dumps(history).encode())
 
     def do_RECOMMENDATION(self):
@@ -189,11 +200,7 @@ class Server(SimpleHTTPRequestHandler):
         queryStrings=dict(urllib.parse.parse_qsl(self.path))
         print(queryStrings)
         id=int(queryStrings['/recommendation?id'])
-
-        newsdb=NewsDB()
-        predictor=NewsPredictor()
-        userdb=UserDB()
-        history=userdb.getUsersBrowsingHistory(id)
+        history=userdb.getUsersBrowsingHistory(id,newsdb)
         predictor.prepare_predictor(newsdb.df)
         lists=[]
         for item in history:

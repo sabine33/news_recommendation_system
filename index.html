@@ -99,6 +99,7 @@
         },
         methods: {
           async getRecommendation() {
+            this.recommendations=[];
             fetch("/recommendation?id=" + this.selected)
               .then((response) => response.json())
               .then((data) => {
@@ -107,6 +108,7 @@
               .catch((err) => console.log(err));
           },
           async getHistory() {
+            this.history=[]
             // alert(this.selected)
             fetch("/history?id=" + this.selected)
               .then((response) => response.json())
@@ -117,6 +119,8 @@
               .catch((err) => console.log(err));
           },
           async onChange() {
+            this.history=[];
+            this.recommendations=[]
             await this.getHistory();
           },
         },
