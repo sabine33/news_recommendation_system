@@ -41,7 +41,7 @@ class NewsRecommendationCollaborative:
         # print("SORTED__START")
         # print(sorted_visits)
         # print("SORTED__END")
-        self.active_users = self.filtered_visits_per_user_df.index.tolist()
+        self.active_users = sorted_visits.index.tolist()
         #active users in list
         print("ACTIVE USERS")
         print(self.active_users)
@@ -142,9 +142,9 @@ class NewsRecommendationCollaborative:
         #as id in string format in db,converting to string for comparison
         list_string = map(str, top_n_news_items) 
         #find the news from newslist, which are in above id list 
-        news_information = self.newslist[self.newslist['id'].isin(list_string)]
+        self.similar_news = self.newslist[self.newslist['id'].isin(list_string)]
         print("PREDICTED NEWS")
-        print(news_information)
+        print(self.similar_news)
 
     
  
@@ -160,4 +160,3 @@ predictor.prepare_similar_users(66,predictor.visits_matrix)
 predictor.prepare_users_visited_news()
 predictor.user_visited_news_history(66)
 predictor.predict_news()
-
