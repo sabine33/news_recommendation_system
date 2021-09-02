@@ -1,4 +1,6 @@
+from os import read
 import pandas as pd
+from pandas.core.algorithms import isin
 from sklearn.metrics.pairwise import cosine_similarity
 import operator
 
@@ -100,7 +102,7 @@ class NewsRecommendationCollaborative:
         print("SIMILARITY WITH USERS , SORTED")
         print(user_other_similarity_sorted)
         #top 5 matra line
-        top_users_similarities = user_other_similarity_sorted[:5]
+        top_users_similarities = user_other_similarity_sorted[:10]
         #key value pair bata key or user_id matra tanne
         self.similar_users_list = [u[0] for u in top_users_similarities]
         print("SIMILAR USERS")
@@ -130,33 +132,78 @@ class NewsRecommendationCollaborative:
         visit_history=self.newslist[self.newslist['id'].isin(user_history_posts)]
         print("USER POST VISIT HISTORY")
         print(visit_history)
+        return visit_history
 
-    def predict_news(self):
+
+    def predict_news(self,user_id):
         #most matched news 5 ota ligne
-        top_news = self.similar_users_visit_history_df_ordered.head(5)
-        print("MOST MATCHED TOP 5 NEWS")
-        print(top_news)
-        #listma convert garne
-        top_n_news_items = top_news.index.tolist()
-        print(top_n_news_items)
+        history=self.user_visited_news_history(user_id)
+        history_ids= history['id'].tolist()
+
+        
+        top_news = self.similar_users_visit_history_df_ordered.head(15)
+        top_n_news_ids = top_news.index.tolist()
+        #to string array
         #as id in string format in db,converting to string for comparison
-        list_string = map(str, top_n_news_items) 
+
+        top_n_news_ids_list = map(str, top_n_news_ids) 
+        print("ALL ")
+        print(top_n_news_ids)
+
+        unique_news_ids = [item for item in top_n_news_ids_list if item not in history_ids]
+        print("UNIQUE")
+        print(unique_news_ids)
+
+        
         #find the news from newslist, which are in above id list 
-        self.similar_news = self.newslist[self.newslist['id'].isin(list_string)]
+        self.similar_news = self.newslist[self.newslist['id'].isin(unique_news_ids)]
         print("PREDICTED NEWS")
         print(self.similar_news)
+        return self.similar_news
 
     
- 
+
+class UserDB:
+    #initialize users db
+    def __init__(self) -> None:
+        self.df_user_info=pd.read_csv("users_info.csv")
+        json=pd.read_json("db_full.json")
+        self.newsdb = pd.json_normalize(json['news'])
+
+       
+        pass
+
+    #list users
+    def getUsers(self):
+        return self.df_user_info
+       
+        
+    
+    #get user's browsing history, perf. improvement possible
+    def getUsersBrowsingHistory(self,user_id):
+        list = pd.DataFrame(self.df)
+        item=list[list['user_id']==user_id]
+        browsed=item['post_id'].values
+        newslist=[]
+        for id in browsed:
+            newslist.append(self.newsdb.get_news_from_id(id))
+        return newslist
+    # print(item['post_id'].values)
 
 
-predictor=NewsRecommendationCollaborative() 
-predictor.content_summary()
-predictor.user_mapping_filtering()
-predictor.news_mapping_filtering()
-predictor.user_news_common_mapping()
-predictor.prepare_visitor_matrix()
-predictor.prepare_similar_users(66,predictor.visits_matrix)
-predictor.prepare_users_visited_news()
-predictor.user_visited_news_history(66)
-predictor.predict_news()
+
+
+
+# predictor=NewsRecommendationCollaborative() 
+# predictor.content_summary()
+# predictor.user_mapping_filtering()
+# predictor.news_mapping_filtering()
+# predictor.user_news_common_mapping()
+# predictor.prepare_visitor_matrix()
+# predictor.prepare_similar_users(66,predictor.visits_matrix)
+# predictor.prepare_users_visited_news()
+# predictor.user_visited_news_history(66)
+# predictor.predict_news(66)
+
+
+
