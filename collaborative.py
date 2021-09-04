@@ -140,7 +140,7 @@ class NewsRecommendationCollaborative:
         history=self.user_visited_news_history(user_id)
         history_ids= history['id'].tolist()
 
-        
+
         top_news = self.similar_users_visit_history_df_ordered.head(15)
         top_n_news_ids = top_news.index.tolist()
         #to string array
@@ -204,6 +204,3 @@ class UserDB:
 # predictor.prepare_users_visited_news()
 # predictor.user_visited_news_history(66)
 # predictor.predict_news(66)
-
-
-
