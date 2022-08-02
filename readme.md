@@ -1,4 +1,4 @@
-##How to run:
+# How to run:
 
 * Open terminal in given directory  
 * install all pip dependencies  
